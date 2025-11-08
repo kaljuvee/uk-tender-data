@@ -1,138 +1,178 @@
-# UK Tender Scraper
+# 🇬🇧 UK Tender Scraper
 
-A Streamlit-based application for scraping and analyzing UK government tender opportunities from the Find a Tender service.
+A comprehensive Streamlit application for scraping, analyzing, and exporting UK government tender opportunities from the Find a Tender service.
 
-## Features
+## 🌟 Features
 
-- **API Integration**: Fetch real tender data from the UK Find a Tender OCDS API
-- **Synthetic Data Generation**: Generate realistic test data using Faker
-- **Advanced Search**: Filter tenders by keywords, buyer, and status
-- **Analytics Dashboard**: Visualize tender statistics and trends
-- **Data Export**: Export tender data in CSV, JSON, or Excel formats
-- **SQLite Database**: Store and manage tender data locally
-- **Duplicate Detection**: Automatically prevent duplicate tender entries
+- **Data Collection**: Scrape tender data from Find a Tender API with configurable parameters
+- **PostgreSQL Storage**: Store data in PostgreSQL with `tendly` schema and multi-country support
+- **Synthetic Data Generation**: Generate realistic test data using Faker library
+- **Advanced Search**: Search and filter tenders by keywords, buyer, status, and date range
+- **Analytics Dashboard**: Visualize tender data with interactive charts and statistics
+- **Export Capabilities**: Export data to Excel, CSV, and JSON formats
+- **Multi-Country Support**: Built-in `country_code` column for future expansion to other countries
+- **Duplicate Detection**: Automatic detection and prevention of duplicate tender records
+- **Scraping History**: Complete audit trail of all scraping operations
 
-## Tech Stack
+## 📋 Requirements
 
-- **Frontend**: Streamlit
-- **Backend**: Python 3.11
-- **Database**: SQLite
-- **Data Processing**: Pandas
-- **Web Scraping**: Requests (API), Playwright (fallback)
-- **AI/LLM**: LangChain, LangGraph, OpenAI
-- **Data Generation**: Faker
+- Python 3.11+
+- PostgreSQL database
+- OpenAI API key (for LangChain/LangGraph features)
+- GitHub account (for deployment)
 
-## Installation
+## 🚀 Quick Start
 
-### Prerequisites
+### 1. Clone the Repository
 
-- Python 3.11 or higher
-- pip package manager
-
-### Setup
-
-1. Clone the repository:
 ```bash
 git clone https://github.com/kaljuvee/uk-tender-data.git
 cd uk-tender-data
 ```
 
-2. Install dependencies:
+### 2. Create Virtual Environment
+
+```bash
+python3.11 -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+```
+
+### 3. Install Dependencies
+
 ```bash
 pip install -r requirements.txt
 ```
 
-3. Set up environment variables:
+### 4. Configure Environment Variables
+
 ```bash
 cp .env.sample .env
-# Edit .env and add your OpenAI API key
 ```
 
-4. Initialize the database:
+Edit `.env` and add your credentials:
+
+```env
+# PostgreSQL Database Connection
+MAIN_DB_URL=postgresql://username:password@host:port/database
+
+# OpenAI API Key (for LangChain/LangGraph)
+OPENAI_API_KEY=your_openai_api_key_here
+
+# Application Settings
+COUNTRY_CODE=UK
+```
+
+### 5. Initialize Database
+
+Run the database initialization script to create the `tendly` schema and tables:
+
 ```bash
-python -c "from utils.database import TenderDatabase; TenderDatabase()"
+python init_db.py
 ```
 
-## Usage
+This will:
+- Create the `tendly` schema in your PostgreSQL database
+- Create tables: `tenders`, `lots`, `documents`, `scraping_log`
+- All tables include a `country_code` column for multi-country support
 
-### Running the Application
-
-Start the Streamlit application:
+### 6. Run the Application
 
 ```bash
 streamlit run Home.py
 ```
 
-The application will open in your default web browser at `http://localhost:8501`.
+The application will be available at `http://localhost:8501`
 
-### Application Pages
+## 📁 Project Structure
 
-1. **Home** (`Home.py`)
-   - Overview dashboard with key statistics
-   - Recent tenders list
-   - Detailed tender information viewer
+```
+uk-tender-data/
+├── Home.py                      # Main Streamlit application
+├── pages/
+│   ├── 1_Scrape_Tenders.py     # Data scraping interface
+│   ├── 2_Search_Tenders.py     # Search and filter interface
+│   └── 3_Analytics_Export.py   # Analytics and export interface
+├── utils/
+│   ├── database.py             # PostgreSQL database operations
+│   ├── api_scraper.py          # API scraping functionality
+│   └── data_generator.py       # Synthetic data generation
+├── sql/
+│   └── create_tables.sql       # PostgreSQL DDL (tendly schema)
+├── tests/
+│   ├── test_database.py        # Database tests
+│   ├── test_api_scraper.py     # API scraper tests
+│   └── test_data_generator.py  # Data generator tests
+├── init_db.py                  # Database initialization script
+├── requirements.txt            # Python dependencies
+├── .env.sample                 # Environment variables template
+└── README.md                   # This file
+```
 
-2. **Scrape Tenders** (`pages/1_Scrape_Tenders.py`)
-   - Fetch real data from Find a Tender API
-   - Generate synthetic test data
-   - Configure scraping parameters (records, date range, stage filters)
-   - View scraping history and logs
+## 🗄️ Database Schema
 
-3. **Search Tenders** (`pages/2_Search_Tenders.py`)
-   - Search by keywords in title/description
-   - Filter by buyer organization
-   - Filter by tender status
-   - View detailed tender information in tabs
+All tables are created in the `tendly` schema with the following structure:
 
-4. **Analytics & Export** (`pages/3_Analytics_Export.py`)
-   - View tender statistics and charts
-   - Analyze tenders by status and category
-   - Top buyers by count and value
-   - Export data in multiple formats (CSV, JSON, Excel)
+### tenders
+- `id` (SERIAL PRIMARY KEY)
+- `country_code` (VARCHAR(2)) - Country identifier (e.g., 'UK')
+- `notice_id` (VARCHAR(100) UNIQUE)
+- `ocid` (VARCHAR(100))
+- `title` (TEXT)
+- `description` (TEXT)
+- `status` (VARCHAR(50))
+- `stage` (VARCHAR(50))
+- `publication_date` (TIMESTAMP)
+- `value_amount` (DECIMAL(15,2))
+- `value_currency` (VARCHAR(3))
+- `buyer_name` (VARCHAR(255))
+- `buyer_id` (VARCHAR(100))
+- `buyer_email` (VARCHAR(255))
+- `buyer_address` (TEXT)
+- `classification_id` (VARCHAR(50))
+- `classification_description` (TEXT)
+- `main_procurement_category` (VARCHAR(50))
+- `cpv_codes` (TEXT)
+- `legal_basis` (VARCHAR(100))
+- `created_at` (TIMESTAMP DEFAULT NOW())
 
-## API Information
+### lots
+- `id` (SERIAL PRIMARY KEY)
+- `country_code` (VARCHAR(2))
+- `tender_id` (INTEGER REFERENCES tendly.tenders)
+- `lot_id` (VARCHAR(100))
+- `title` (TEXT)
+- `description` (TEXT)
+- `value_amount` (DECIMAL(15,2))
+- `value_currency` (VARCHAR(3))
 
-### Find a Tender OCDS API
+### documents
+- `id` (SERIAL PRIMARY KEY)
+- `country_code` (VARCHAR(2))
+- `tender_id` (INTEGER REFERENCES tendly.tenders)
+- `document_id` (VARCHAR(100))
+- `title` (VARCHAR(255))
+- `document_type` (VARCHAR(50))
+- `url` (TEXT)
+- `date_published` (TIMESTAMP)
 
-The application uses the UK government's Find a Tender service API:
+### scraping_log
+- `id` (SERIAL PRIMARY KEY)
+- `country_code` (VARCHAR(2))
+- `timestamp` (TIMESTAMP DEFAULT NOW())
+- `records_fetched` (INTEGER)
+- `records_inserted` (INTEGER)
+- `records_duplicates` (INTEGER)
+- `source` (VARCHAR(50))
+- `parameters` (TEXT)
+- `status` (VARCHAR(20))
+- `error_message` (TEXT)
 
-- **Endpoint**: `https://www.find-tender.service.gov.uk/api/1.0/ocdsReleasePackages`
-- **Authentication**: Not required for public data
-- **Format**: JSON (OCDS version 1.1.5)
-- **Rate Limit**: 100 records per request
+## 🧪 Testing
 
-### Query Parameters
-
-- `limit`: Number of records (1-100, default 100)
-- `stages`: Filter by stage (planning, tender, award)
-- `updatedFrom`: Earliest update date (YYYY-MM-DDTHH:MM:SS)
-- `updatedTo`: Latest update date (YYYY-MM-DDTHH:MM:SS)
-- `cursor`: Pagination token
-
-## Database Schema
-
-### Tables
-
-**tenders**
-- Main tender information (notice_id, title, description, status, value, buyer details, etc.)
-
-**lots**
-- Individual lots associated with tenders (one-to-many relationship)
-
-**documents**
-- Documents and attachments related to tenders
-
-**scraping_log**
-- Audit log of scraping operations
-
-See `sql/create_tables.sql` for complete schema.
-
-## Testing
-
-Run the test suite:
+Run the test suite to verify all components:
 
 ```bash
-# Test database functionality
+# Test database operations
 python tests/test_database.py
 
 # Test API scraper
@@ -142,74 +182,119 @@ python tests/test_api_scraper.py
 python tests/test_data_generator.py
 ```
 
-Test results are saved to `test-results/*.json`.
+Test results are saved to `test-results/*.json`
 
-## Project Structure
+## 📊 Usage
 
-```
-uk-tender-scraper/
-├── Home.py                      # Main application entry point
-├── pages/                       # Streamlit pages
-│   ├── 1_Scrape_Tenders.py     # Scraping interface
-│   ├── 2_Search_Tenders.py     # Search and filter
-│   └── 3_Analytics_Export.py   # Analytics and export
-├── utils/                       # Utility modules
-│   ├── database.py             # Database operations
-│   ├── api_scraper.py          # API scraping logic
-│   └── data_generator.py       # Synthetic data generation
-├── sql/                         # Database files
-│   ├── create_tables.sql       # Database schema
-│   └── tenders.db              # SQLite database (created at runtime)
-├── tests/                       # Test files
-│   ├── test_database.py
-│   ├── test_api_scraper.py
-│   └── test_data_generator.py
-├── test-results/                # Test output (JSON)
-├── requirements.txt             # Python dependencies
-├── .env.sample                  # Environment variables template
-├── .gitignore                   # Git ignore rules
-└── README.md                    # This file
-```
+### Home Page
+- View database statistics and recent tenders
+- Generate synthetic test data
+- Monitor database health
 
-## Configuration
+### Scrape Tenders
+- Configure scraping parameters (record count, stage, date range)
+- Scrape data from Find a Tender API
+- View scraping history and logs
+
+### Search Tenders
+- Search by keywords across titles and descriptions
+- Filter by buyer name, status, and date range
+- View detailed tender information
+
+### Analytics & Export
+- Visualize tender distribution by status, buyer, and value
+- Export filtered data to Excel, CSV, or JSON
+- Download comprehensive reports
+
+## 🌍 Multi-Country Support
+
+The application is designed to support multiple countries:
+
+- All tables include a `country_code` column
+- Database operations filter by country code
+- Easy to extend to other countries (e.g., 'US', 'EU', 'CA')
+
+To add a new country:
+1. Set `COUNTRY_CODE` in `.env` to the new country code
+2. Update the data generator with country-specific data
+3. Configure the API scraper for the new country's tender service
+
+## 🔧 Configuration
 
 ### Environment Variables
 
-Create a `.env` file with the following variables:
-
-```env
-OPENAI_API_KEY=your_openai_api_key_here
-GITHUB_USERNAME=your_github_username
-GITHUB_TOKEN=your_github_token
-```
+- `MAIN_DB_URL`: PostgreSQL connection string
+- `OPENAI_API_KEY`: OpenAI API key for LangChain features
+- `COUNTRY_CODE`: Country code for tender data (default: UK)
 
 ### Scraping Parameters
 
-Configure scraping in the sidebar:
+- **Record Count**: 10-500 records per scraping session
+- **Procurement Stage**: planning, tender, award
+- **Date Range**: 7-365 days back from current date
 
-- **Number of Records**: 10-500 (default: 100)
-- **Data Source**: API (real) or Synthetic (test)
-- **Stage Filter**: planning, tender, award, or all
-- **Days to Look Back**: 7-365 (default: 30)
+## 📦 Dependencies
 
-## Data Sources
+Core dependencies (see `requirements.txt` for full list):
 
-### Find a Tender Service
+- `streamlit` - Web application framework
+- `pandas` - Data manipulation and analysis
+- `psycopg2-binary` - PostgreSQL adapter
+- `sqlalchemy` - SQL toolkit and ORM
+- `requests` - HTTP library for API calls
+- `playwright` - Browser automation (fallback scraping)
+- `faker` - Synthetic data generation
+- `langchain` - LLM framework
+- `langchain-openai` - OpenAI integration for LangChain
+- `langgraph` - Graph-based LLM workflows
+- `openpyxl` - Excel file operations
 
-Official UK government procurement portal:
-- Website: https://www.find-tender.service.gov.uk/
-- API Documentation: https://www.find-tender.service.gov.uk/apidocumentation
-- Data Standard: Open Contracting Data Standard (OCDS) 1.1.5
+## 🚀 Deployment
 
-### Synthetic Data
+### Streamlit Cloud
 
-Generated using the Faker library with realistic UK-specific data:
-- UK government organizations
-- CPV classification codes
-- UK addresses and postcodes
-- Realistic tender titles and descriptions
+1. Fork this repository
+2. Sign up at [share.streamlit.io](https://share.streamlit.io)
+3. Connect your GitHub repository
+4. Add secrets in Streamlit Cloud dashboard:
+   - `MAIN_DB_URL`
+   - `OPENAI_API_KEY`
+   - `COUNTRY_CODE`
+5. Deploy!
 
-## Contributing
+### Heroku
+
+```bash
+heroku create uk-tender-scraper
+heroku addons:create heroku-postgresql:mini
+heroku config:set OPENAI_API_KEY=your_key_here
+heroku config:set COUNTRY_CODE=UK
+git push heroku main
+heroku open
+```
+
+### Docker
+
+```bash
+docker build -t uk-tender-scraper .
+docker run -p 8501:8501 \
+  -e MAIN_DB_URL=your_db_url \
+  -e OPENAI_API_KEY=your_key \
+  -e COUNTRY_CODE=UK \
+  uk-tender-scraper
+```
+
+## 📝 API Documentation
+
+The application uses the Find a Tender API:
+- Base URL: `https://www.find-tender.service.gov.uk/api/1.0/`
+- Endpoint: `/ocdsReleasePackages`
+- Format: OCDS (Open Contracting Data Standard)
+- Authentication: Not required for public data
+
+## 🤝 Contributing
+
+Contributions are welcome! Please:
 
 1. Fork the repository
 2. Create a feature branch (`git checkout -b feature/amazing-feature`)
@@ -217,20 +302,21 @@ Generated using the Faker library with realistic UK-specific data:
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
 
-## License
+## 📄 License
 
-This project is for demonstration and educational purposes.
+This project is licensed under the MIT License - see the LICENSE file for details.
 
-## Contact
+## 🙏 Acknowledgments
+
+- Data source: [Find a Tender Service](https://www.find-tender.service.gov.uk/)
+- Built with [Streamlit](https://streamlit.io/)
+- Uses [OCDS](https://standard.open-contracting.org/) data standard
+- Powered by [LangChain](https://langchain.com/) and [OpenAI](https://openai.com/)
+
+## 📧 Contact
 
 For questions or support, please open an issue on GitHub.
 
-## Acknowledgments
-
-- UK Government Find a Tender Service
-- Open Contracting Partnership (OCDS)
-- Lohusalu Capital Management
-
 ---
 
-**Note**: This application is a proof of concept for educational purposes. Always comply with the Find a Tender service's terms of use and rate limits when accessing their API.
+**Lohusalu Capital Management** | UK Tender Scraper | Data from Find a Tender Service
