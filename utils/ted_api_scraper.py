@@ -50,7 +50,11 @@ class TEDAPIScraper:
                 "CY",  # Country
                 "TD",  # Document Type
                 "NC",  # Nature of Contract
-                "DT"   # Deadline
+                "DT",  # Deadline
+                "total-value",  # Total contract value
+                "result-value-cur-lot",  # Result value with currency
+                "framework-value-notice",  # Framework value
+                "BT-27-Lot"  # Estimated value
             ]
         
         payload = {
@@ -172,9 +176,39 @@ class TEDAPIScraper:
         tender_data['stage'] = get_first(nc_data)
         tender_data['main_procurement_category'] = self._map_category(get_first(nc_data))
         
-        # Extract value information
-        tender_data['value_amount'] = None
-        tender_data['value_currency'] = 'EUR'
+        # Extract value information from various TED fields
+        value_amount = None
+        value_currency = 'EUR'
+        
+        # Try total-value first
+        total_value = notice.get('total-value')
+        if total_value:
+            value_amount = self._extract_value_amount(total_value)
+            value_currency = self._extract_currency(total_value) or 'EUR'
+        
+        # Try result-value-cur-lot if no total value
+        if not value_amount:
+            result_value = notice.get('result-value-cur-lot')
+            if result_value:
+                value_amount = self._extract_value_amount(result_value)
+                value_currency = self._extract_currency(result_value) or 'EUR'
+        
+        # Try framework-value-notice
+        if not value_amount:
+            framework_value = notice.get('framework-value-notice')
+            if framework_value:
+                value_amount = self._extract_value_amount(framework_value)
+                value_currency = self._extract_currency(framework_value) or 'EUR'
+        
+        # Try BT-27-Lot (estimated value)
+        if not value_amount:
+            estimated_value = notice.get('BT-27-Lot')
+            if estimated_value:
+                value_amount = self._extract_value_amount(estimated_value)
+                value_currency = self._extract_currency(estimated_value) or 'EUR'
+        
+        tender_data['value_amount'] = value_amount
+        tender_data['value_currency'] = value_currency
         
         # Classification
         tender_data['classification_id'] = None
@@ -237,6 +271,94 @@ class TEDAPIScraper:
         }
         
         return type_mapping.get(doc_type, 'active')
+    
+    def _extract_value_amount(self, value_data: Any) -> Optional[float]:
+        """
+        Extract numeric value amount from TED value field.
+        
+        Args:
+            value_data: Value data (could be string, number, list, or dict)
+        
+        Returns:
+            Numeric value or None
+        """
+        if not value_data:
+            return None
+        
+        try:
+            # If it's already a number
+            if isinstance(value_data, (int, float)):
+                return float(value_data)
+            
+            # If it's a list, take first item
+            if isinstance(value_data, list):
+                if value_data:
+                    return self._extract_value_amount(value_data[0])
+                return None
+            
+            # If it's a dict, look for common value keys
+            if isinstance(value_data, dict):
+                for key in ['value', 'amount', 'val']:
+                    if key in value_data:
+                        return self._extract_value_amount(value_data[key])
+                # If dict has numeric values, try first one
+                for v in value_data.values():
+                    result = self._extract_value_amount(v)
+                    if result:
+                        return result
+                return None
+            
+            # If it's a string, try to parse as number
+            if isinstance(value_data, str):
+                # Remove common currency symbols and whitespace
+                cleaned = value_data.replace(',', '').replace(' ', '').strip()
+                for symbol in ['€', '$', '£', 'EUR', 'USD', 'GBP']:
+                    cleaned = cleaned.replace(symbol, '')
+                if cleaned:
+                    return float(cleaned)
+            
+        except (ValueError, TypeError):
+            pass
+        
+        return None
+    
+    def _extract_currency(self, value_data: Any) -> Optional[str]:
+        """
+        Extract currency code from TED value field.
+        
+        Args:
+            value_data: Value data (could be string, number, list, or dict)
+        
+        Returns:
+            Currency code or None
+        """
+        if not value_data:
+            return None
+        
+        try:
+            # If it's a list, take first item
+            if isinstance(value_data, list):
+                if value_data:
+                    return self._extract_currency(value_data[0])
+                return None
+            
+            # If it's a dict, look for currency key
+            if isinstance(value_data, dict):
+                for key in ['currency', 'cur', 'curr']:
+                    if key in value_data:
+                        return str(value_data[key]).upper()
+                return None
+            
+            # If it's a string, look for currency codes
+            if isinstance(value_data, str):
+                value_upper = value_data.upper()
+                for currency in ['EUR', 'USD', 'GBP', 'PLN', 'CZK', 'HUF', 'RON', 'BGN', 'HRK', 'DKK', 'SEK']:
+                    if currency in value_upper:
+                        return currency
+        except:
+            pass
+        
+        return None
     
     def _map_category(self, nature_code: str) -> str:
         """
