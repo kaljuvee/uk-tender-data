@@ -9,7 +9,7 @@ import json
 from datetime import datetime
 
 st.set_page_config(
-    page_title="Tender Analytics - UK Public Tender Data",
+    page_title="Tender Analytics - UK + EU Tender Data",
     page_icon="📊",
     layout="wide"
 )

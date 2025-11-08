@@ -1,5 +1,5 @@
 """
-UK Public Tender Data
+UK + EU Tender Data
 Lohusalu Capital Management
 """
 
@@ -10,7 +10,7 @@ import os
 
 # Page configuration
 st.set_page_config(
-    page_title="UK Public Tender Data",
+    page_title="UK + EU Tender Data",
     page_icon="🇬🇧",
     layout="wide",
     initial_sidebar_state="expanded"
@@ -25,7 +25,7 @@ def get_database():
 db = get_database()
 
 # Sidebar
-st.sidebar.title("🇬🇧 UK Public Tender Data")
+st.sidebar.title("🇬🇧🇪🇺 UK + EU Tender Data")
 st.sidebar.markdown("---")
 
 # Statistics
@@ -44,11 +44,20 @@ if stats.get('by_status'):
         st.sidebar.text(f"• {status}: {count}")
 
 # Main content
-st.title("🇬🇧 UK Public Tender Data")
-st.markdown("**Find and analyze UK government tender opportunities**")
+st.title("🇬🇧🇪🇺 UK + EU Tender Data")
+st.markdown("**Find and analyze UK and EU government tender opportunities**")
 st.markdown("---")
 
-# Overview cards
+# Overview cards - Country breakdown
+try:
+    all_tenders = db.get_all_tenders(limit=1000, country_code=None)  # Get all countries
+    uk_count = len([t for t in all_tenders if t.get('country_code') == 'UK'])
+    eu_count = len([t for t in all_tenders if t.get('country_code') == 'EU'])
+except Exception as e:
+    print(f"Error getting country counts: {e}")
+    uk_count = 0
+    eu_count = 0
+
 col1, col2, col3, col4 = st.columns(4)
 
 with col1:
@@ -59,22 +68,21 @@ with col1:
 
 with col2:
     st.metric(
-        label="🆕 Recent Tenders",
-        value=stats.get('recent_tenders', 0)
+        label="🇬🇧 UK Tenders",
+        value=uk_count
     )
 
 with col3:
+    st.metric(
+        label="🇪🇺 EU Tenders",
+        value=eu_count
+    )
+
+with col4:
     active_count = stats.get('by_status', {}).get('active', 0)
     st.metric(
         label="✅ Active",
         value=active_count
-    )
-
-with col4:
-    planned_count = stats.get('by_status', {}).get('planned', 0)
-    st.metric(
-        label="📅 Planned",
-        value=planned_count
     )
 
 st.markdown("---")
@@ -183,4 +191,4 @@ else:
 
 # Footer
 st.markdown("---")
-st.caption("UK Public Tender Data | Lohusalu Capital Management | Data from Find a Tender Service")
+st.caption("UK + EU Tender Data | Lohusalu Capital Management | Data from UK Find a Tender & EU TED")

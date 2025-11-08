@@ -164,18 +164,27 @@ class TenderDatabase:
             doc_data.get('datePublished')
         ))
     
-    def get_all_tenders(self, limit: int = 100, offset: int = 0) -> List[Dict[str, Any]]:
-        """Get all tenders for the current country."""
+    def get_all_tenders(self, limit: int = 100, offset: int = 0, country_code: str = None) -> List[Dict[str, Any]]:
+        """Get all tenders. If country_code is None, get from all countries."""
         conn = self.get_connection()
         try:
             cursor = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
             
-            cursor.execute("""
-                SELECT * FROM tendly.tenders
-                WHERE country_code = %s
-                ORDER BY created_at DESC
-                LIMIT %s OFFSET %s
-            """, (self.country_code, limit, offset))
+            if country_code is None:
+                # Get tenders from all countries
+                cursor.execute("""
+                    SELECT * FROM tendly.tenders
+                    ORDER BY created_at DESC
+                    LIMIT %s OFFSET %s
+                """, (limit, offset))
+            else:
+                # Get tenders for specific country
+                cursor.execute("""
+                    SELECT * FROM tendly.tenders
+                    WHERE country_code = %s
+                    ORDER BY created_at DESC
+                    LIMIT %s OFFSET %s
+                """, (country_code, limit, offset))
             
             tenders = cursor.fetchall()
             return [dict(row) for row in tenders]

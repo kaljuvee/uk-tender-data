@@ -7,7 +7,7 @@ from utils.database import TenderDatabase
 import pandas as pd
 
 st.set_page_config(
-    page_title="Search Tenders - UK Public Tender Data",
+    page_title="Search Tenders - UK + EU Tender Data",
     page_icon="🔎",
     layout="wide"
 )
