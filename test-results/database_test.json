@@ -1,0 +1,47 @@
+{
+  "test_name": "Database Operations Test",
+  "timestamp": "2025-11-08T14:53:21.976036",
+  "tests": [
+    {
+      "name": "Database Initialization",
+      "status": "PASS",
+      "message": "Database initialized successfully. Total tenders: 0"
+    },
+    {
+      "name": "Insert Tender",
+      "status": "PASS",
+      "message": "Tender inserted successfully with ID: 1"
+    },
+    {
+      "name": "Duplicate Detection",
+      "status": "PASS",
+      "message": "Duplicate tender correctly rejected"
+    },
+    {
+      "name": "Get All Tenders",
+      "status": "PASS",
+      "message": "Retrieved 1 tenders"
+    },
+    {
+      "name": "Search Tenders",
+      "status": "PASS",
+      "message": "Search completed, found 0 results"
+    },
+    {
+      "name": "Scraping Log",
+      "status": "PASS",
+      "message": "Scraping run logged successfully"
+    },
+    {
+      "name": "Statistics",
+      "status": "PASS",
+      "message": "Statistics retrieved: {'total_tenders': 1, 'by_status': {'unsuccessful': 1}, 'recent_tenders': 0}"
+    }
+  ],
+  "summary": {
+    "total": 7,
+    "passed": 7,
+    "failed": 0,
+    "success_rate": "100.0%"
+  }
+}

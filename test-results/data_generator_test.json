@@ -1,0 +1,43 @@
+{
+  "test_name": "Data Generator Test",
+  "timestamp": "2025-11-08T14:53:34.544771",
+  "tests": [
+    {
+      "name": "Generate Single Tender",
+      "status": "PASS",
+      "message": "Generated tender with notice_id: 670488-2023"
+    },
+    {
+      "name": "Generate Multiple Tenders",
+      "status": "PASS",
+      "message": "Generated 10 tenders successfully"
+    },
+    {
+      "name": "Unique Notice IDs",
+      "status": "PASS",
+      "message": "All generated notice IDs are unique"
+    },
+    {
+      "name": "Data Types",
+      "status": "PASS",
+      "message": "All fields have correct data types"
+    },
+    {
+      "name": "Lots Generation",
+      "status": "PASS",
+      "message": "6 out of 20 tenders have lots"
+    },
+    {
+      "name": "Value Ranges",
+      "status": "PASS",
+      "message": "Values range from \u00a3443,216.72 to \u00a39,951,030.67"
+    }
+  ],
+  "summary": {
+    "total": 6,
+    "passed": 6,
+    "failed": 0,
+    "warnings": 0,
+    "success_rate": "100.0%"
+  }
+}

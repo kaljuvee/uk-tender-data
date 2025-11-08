@@ -1,0 +1,10 @@
+streamlit
+pandas
+requests
+playwright
+faker
+langchain
+langchain-openai
+langgraph
+python-dotenv
+sqlalchemy

@@ -1,0 +1,33 @@
+{
+  "test_name": "API Scraper Test",
+  "timestamp": "2025-11-08T14:53:25.286202",
+  "tests": [
+    {
+      "name": "Fetch Tenders",
+      "status": "PASS",
+      "message": "Successfully fetched 5 releases from API"
+    },
+    {
+      "name": "Parse Release",
+      "status": "PASS",
+      "message": "Successfully parsed release with notice_id: 072227-2025"
+    },
+    {
+      "name": "Scrape and Parse Multiple",
+      "status": "PASS",
+      "message": "Successfully scraped and parsed 3 tenders"
+    },
+    {
+      "name": "Stage Filtering",
+      "status": "PASS",
+      "message": "Successfully filtered by stage, got 3 releases"
+    }
+  ],
+  "summary": {
+    "total": 4,
+    "passed": 4,
+    "failed": 0,
+    "skipped": 0,
+    "success_rate": "100.0%"
+  }
+}
