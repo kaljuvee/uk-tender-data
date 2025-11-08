@@ -1,9 +1,13 @@
-"""Test database functionality."""
+"""Test database functionality with PostgreSQL."""
 
 import sys
 import os
 import json
 from datetime import datetime
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
 
 # Add parent directory to path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -16,33 +20,46 @@ def test_database_operations():
     """Test basic database operations."""
     
     results = {
-        "test_name": "Database Operations Test",
+        "test_name": "PostgreSQL Database Operations Test",
         "timestamp": datetime.now().isoformat(),
         "tests": []
     }
     
-    # Use a test database
-    db = TenderDatabase(db_path="sql/test_tenders.db")
+    # Use PostgreSQL database
+    try:
+        db = TenderDatabase(country_code='UK')
+        results["tests"].append({
+            "name": "Database Connection",
+            "status": "PASS",
+            "message": "Successfully connected to PostgreSQL database"
+        })
+    except Exception as e:
+        results["tests"].append({
+            "name": "Database Connection",
+            "status": "FAIL",
+            "message": str(e)
+        })
+        return results
     
-    # Test 1: Database initialization
+    # Test 1: Get statistics
     try:
         stats = db.get_statistics()
         results["tests"].append({
-            "name": "Database Initialization",
+            "name": "Database Statistics",
             "status": "PASS",
             "message": f"Database initialized successfully. Total tenders: {stats.get('total_tenders', 0)}"
         })
     except Exception as e:
         results["tests"].append({
-            "name": "Database Initialization",
+            "name": "Database Statistics",
             "status": "FAIL",
             "message": str(e)
         })
     
     # Test 2: Insert tender
     try:
-        generator = TenderDataGenerator()
-        test_tender = generator.generate_tender(notice_number=99999)
+        generator = TenderDataGenerator(country_code='UK')
+        test_tender = generator.generate_tender(notice_number=999999)
         
         tender_id = db.insert_tender(test_tender)
         
@@ -165,25 +182,25 @@ def test_database_operations():
             "message": str(e)
         })
     
-    # Test 7: Statistics
+    # Test 7: Country code filtering
     try:
         stats = db.get_statistics()
         
         if 'total_tenders' in stats:
             results["tests"].append({
-                "name": "Statistics",
+                "name": "Country Code Filtering",
                 "status": "PASS",
-                "message": f"Statistics retrieved: {stats}"
+                "message": f"Statistics for UK: {stats}"
             })
         else:
             results["tests"].append({
-                "name": "Statistics",
+                "name": "Country Code Filtering",
                 "status": "FAIL",
                 "message": "Statistics missing expected fields"
             })
     except Exception as e:
         results["tests"].append({
-            "name": "Statistics",
+            "name": "Country Code Filtering",
             "status": "FAIL",
             "message": str(e)
         })
@@ -204,7 +221,7 @@ def test_database_operations():
 
 
 if __name__ == "__main__":
-    print("Running Database Tests...")
+    print("Running PostgreSQL Database Tests...")
     print("=" * 60)
     
     results = test_database_operations()

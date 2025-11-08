@@ -8,3 +8,5 @@ langchain-openai
 langgraph
 python-dotenv
 sqlalchemy
+psycopg2-binary
+openpyxl

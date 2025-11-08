@@ -9,11 +9,12 @@ from typing import List, Dict, Any
 class TenderDataGenerator:
     """Generate synthetic tender data for testing."""
     
-    def __init__(self, seed: int = 42):
+    def __init__(self, seed: int = 42, country_code: str = 'UK'):
         """Initialize the data generator."""
         self.faker = Faker('en_GB')
         Faker.seed(seed)
         random.seed(seed)
+        self.country_code = country_code
         
         self.statuses = ['planned', 'active', 'complete', 'cancelled', 'unsuccessful']
         self.stages = ['planning', 'tender', 'award']
@@ -108,6 +109,7 @@ class TenderDataGenerator:
         value_amount = round(random.uniform(10000, 10000000), 2)
         
         tender_data = {
+            'country_code': self.country_code,
             'notice_id': notice_id,
             'ocid': ocid,
             'title': self._generate_title(),
@@ -124,6 +126,7 @@ class TenderDataGenerator:
             'classification_id': cpv_id,
             'classification_description': cpv_desc,
             'main_procurement_category': random.choice(self.categories),
+            'cpv_codes': cpv_id,
             'legal_basis': random.choice(['32014L0024', '32014L0025', '2023/54']),
         }
         

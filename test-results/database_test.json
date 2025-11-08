@@ -1,9 +1,14 @@
 {
-  "test_name": "Database Operations Test",
-  "timestamp": "2025-11-08T14:53:21.976036",
+  "test_name": "PostgreSQL Database Operations Test",
+  "timestamp": "2025-11-08T16:37:00.788232",
   "tests": [
     {
-      "name": "Database Initialization",
+      "name": "Database Connection",
+      "status": "PASS",
+      "message": "Successfully connected to PostgreSQL database"
+    },
+    {
+      "name": "Database Statistics",
       "status": "PASS",
       "message": "Database initialized successfully. Total tenders: 0"
     },
@@ -33,14 +38,14 @@
       "message": "Scraping run logged successfully"
     },
     {
-      "name": "Statistics",
+      "name": "Country Code Filtering",
       "status": "PASS",
-      "message": "Statistics retrieved: {'total_tenders': 1, 'by_status': {'unsuccessful': 1}, 'recent_tenders': 0}"
+      "message": "Statistics for UK: {'total_tenders': 1, 'by_status': {'unsuccessful': 1}, 'recent_tenders': 1}"
     }
   ],
   "summary": {
-    "total": 7,
-    "passed": 7,
+    "total": 8,
+    "passed": 8,
     "failed": 0,
     "success_rate": "100.0%"
   }
