@@ -24,65 +24,50 @@ st.title("🔎 Search & Filter Tenders")
 st.markdown("Search through UK public tender database with advanced filters")
 st.markdown("---")
 
-# Sidebar filters
-st.sidebar.header("🎯 Search Filters")
+# Search filters on main page
+st.subheader("🎯 Search Filters")
 
-keyword = st.sidebar.text_input(
-    "Keyword Search",
-    placeholder="Search in title or description...",
-    help="Search for keywords in tender title or description"
-)
-
-buyer_filter = st.sidebar.text_input(
-    "Buyer Name",
-    placeholder="Filter by buyer organization...",
-    help="Filter tenders by buyer organization name"
-)
-
-status_options = ["All", "planned", "active", "complete", "cancelled", "unsuccessful"]
-status_filter = st.sidebar.selectbox(
-    "Status",
-    options=status_options,
-    help="Filter by tender status"
-)
-
-st.sidebar.markdown("---")
-
-# Generate synthetic data button
-if st.sidebar.button("🎲 Generate Synthetic Data", use_container_width=True):
-    with st.spinner("Generating synthetic tender data..."):
-        generator = TenderDataGenerator()
-        synthetic_tenders = generator.generate_tenders(count=50)
-        
-        inserted = 0
-        duplicates = 0
-        
-        for tender in synthetic_tenders:
-            result = db.insert_tender(tender)
-            if result:
-                inserted += 1
-            else:
-                duplicates += 1
-        
-        db.log_scraping_run(
-            records_fetched=len(synthetic_tenders),
-            records_inserted=inserted,
-            records_duplicates=duplicates,
-            source="synthetic_generator"
-        )
-        
-        st.sidebar.success(f"✅ Generated {inserted} tenders")
-        st.rerun()
-
-# Main content
-col1, col2 = st.columns([3, 1])
+col1, col2, col3, col4 = st.columns([3, 2, 2, 1])
 
 with col1:
-    st.subheader("🔍 Search Results")
+    keyword = st.text_input(
+        "Keyword Search",
+        placeholder="Search in title or description...",
+        help="Search for keywords in tender title or description",
+        label_visibility="collapsed",
+        key="keyword_search"
+    )
+    st.caption("🔍 Keyword Search")
 
 with col2:
-    # Search button
+    buyer_filter = st.text_input(
+        "Buyer Name",
+        placeholder="Filter by buyer organization...",
+        help="Filter tenders by buyer organization name",
+        label_visibility="collapsed",
+        key="buyer_filter"
+    )
+    st.caption("🏢 Buyer Name")
+
+with col3:
+    status_options = ["All", "planned", "active", "complete", "cancelled", "unsuccessful"]
+    status_filter = st.selectbox(
+        "Status",
+        options=status_options,
+        help="Filter by tender status",
+        label_visibility="collapsed",
+        key="status_filter"
+    )
+    st.caption("📊 Status")
+
+with col4:
+    st.write("")
     search_clicked = st.button("🔎 Search", type="primary", use_container_width=True)
+
+st.markdown("---")
+
+# Main content
+st.subheader("🔍 Search Results")
 
 # Perform search
 if search_clicked or keyword or buyer_filter or status_filter != "All":
@@ -242,7 +227,7 @@ if search_clicked or keyword or buyer_filter or status_filter != "All":
         
         else:
             st.warning("No tenders found matching your search criteria.")
-            st.info("Try adjusting your filters or generate some synthetic data to test the search functionality.")
+            st.info("Try adjusting your filters to find relevant tenders.")
 
 else:
     # Show all tenders by default
@@ -276,7 +261,7 @@ else:
             hide_index=True
         )
     else:
-        st.warning("No tenders in database. Generate synthetic data or scrape from the API first.")
+        st.warning("No tenders in database. Please run the scraper to populate the database.")
 
 # Footer
 st.markdown("---")

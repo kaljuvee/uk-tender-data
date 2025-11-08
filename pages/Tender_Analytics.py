@@ -1,5 +1,5 @@
 """
-Analytics & Export Page - Analyze and export tender data
+Tender Analytics Page - Analyze and export tender data
 """
 
 import streamlit as st
@@ -9,7 +9,7 @@ import json
 from datetime import datetime
 
 st.set_page_config(
-    page_title="Analytics & Export - UK Public Tender Data",
+    page_title="Tender Analytics - UK Public Tender Data",
     page_icon="📊",
     layout="wide"
 )
@@ -22,7 +22,7 @@ def get_database():
 db = get_database()
 
 # Header
-st.title("📊 Analytics & Export")
+st.title("📊 Tender Analytics")
 st.markdown("Analyze UK public tender data and export results")
 st.markdown("---")
 
@@ -244,33 +244,7 @@ if all_tenders:
 
 else:
     st.warning("📭 No tender data available for analysis.")
-    st.info("Generate synthetic data or scrape from the API to populate the database.")
-    
-    # Show generate button
-    if st.button("🎲 Generate Sample Data", type="primary"):
-        with st.spinner("Generating synthetic tender data..."):
-            generator = TenderDataGenerator()
-            synthetic_tenders = generator.generate_tenders(count=100)
-            
-            inserted = 0
-            duplicates = 0
-            
-            for tender in synthetic_tenders:
-                result = db.insert_tender(tender)
-                if result:
-                    inserted += 1
-                else:
-                    duplicates += 1
-            
-            db.log_scraping_run(
-                records_fetched=len(synthetic_tenders),
-                records_inserted=inserted,
-                records_duplicates=duplicates,
-                source="synthetic_generator"
-            )
-            
-            st.success(f"✅ Generated {inserted} tenders")
-            st.rerun()
+    st.info("Please run the scraper tasks to populate the database with tender data.")
 
 # Footer
 st.markdown("---")

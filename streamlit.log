@@ -1,3 +1,4 @@
+nohup: ignoring input
 
 Collecting usage statistics. To deactivate, set browser.gatherUsageStats to false.
 
@@ -8,12 +9,12 @@ Collecting usage statistics. To deactivate, set browser.gatherUsageStats to fals
   Network URL: http://169.254.0.21:8501
   External URL: http://3.88.22.102:8501
 
-2025-11-08 16:56:12.203 Please replace `use_container_width` with `width`.
+2025-11-08 17:20:15.015 Please replace `use_container_width` with `width`.
 
 `use_container_width` will be removed after 2025-12-31.
 
 For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
-2025-11-08 16:56:12.215 `label` got an empty value. This is discouraged for accessibility reasons and may be disallowed in the future by raising an exception. Please provide a non-empty label and hide it with label_visibility if needed.
+2025-11-08 17:20:15.026 `label` got an empty value. This is discouraged for accessibility reasons and may be disallowed in the future by raising an exception. Please provide a non-empty label and hide it with label_visibility if needed.
 Stack (most recent call last):
   File "/usr/lib/python3.11/threading.py", line 995, in _bootstrap
     self._bootstrap_inner()
@@ -43,3 +44,35 @@ Stack (most recent call last):
     maybe_raise_label_warnings(label, label_visibility)
   File "/home/ubuntu/uk-tender-scraper/venv/lib/python3.11/site-packages/streamlit/elements/lib/policies.py", line 184, in maybe_raise_label_warnings
     _LOGGER.warning(
+2025-11-08 17:20:30.070 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2025-11-08 17:20:45.274 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2025-11-08 17:20:45.288 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2025-11-08 17:20:45.293 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2025-11-08 17:20:45.298 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+/home/ubuntu/uk-tender-scraper/venv/lib/python3.11/site-packages/altair/utils/core.py:264: UserWarning: I don't know how to infer vegalite type from 'decimal'.  Defaulting to nominal.
+  warnings.warn(
+2025-11-08 17:20:45.320 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
