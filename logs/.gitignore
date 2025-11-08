@@ -1,0 +1,7 @@
+# Ignore all log files
+*.json
+*.log
+
+# Keep the README
+!README.md
+!.gitignore

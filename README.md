@@ -1,25 +1,25 @@
-# 🇬🇧 UK Tender Scraper
+# 🇬🇧 UK Public Tender Data
 
-A comprehensive Streamlit application for scraping, analyzing, and exporting UK government tender opportunities from the Find a Tender service.
+A comprehensive application for collecting, analyzing, and exporting UK government tender opportunities from the Find a Tender service.
 
 ## 🌟 Features
 
-- **Data Collection**: Scrape tender data from Find a Tender API with configurable parameters
+- **Automated Data Collection**: Command-line scraper that runs hourly via cron
 - **PostgreSQL Storage**: Store data in PostgreSQL with `tendly` schema and multi-country support
-- **Synthetic Data Generation**: Generate realistic test data using Faker library
+- **Real-Time API Integration**: Fetch live data from Find a Tender OCDS API
 - **Advanced Search**: Search and filter tenders by keywords, buyer, status, and date range
 - **Analytics Dashboard**: Visualize tender data with interactive charts and statistics
 - **Export Capabilities**: Export data to Excel, CSV, and JSON formats
-- **Multi-Country Support**: Built-in `country_code` column for future expansion to other countries
-- **Duplicate Detection**: Automatic detection and prevention of duplicate tender records
-- **Scraping History**: Complete audit trail of all scraping operations
+- **Multi-Country Support**: Built-in `country_code` column for future expansion
+- **Comprehensive Logging**: JSON logs for all scraping operations
+- **Duplicate Detection**: Automatic prevention of duplicate tender records
 
 ## 📋 Requirements
 
 - Python 3.11+
 - PostgreSQL database
 - OpenAI API key (for LangChain/LangGraph features)
-- GitHub account (for deployment)
+- Cron (for scheduled scraping)
 
 ## 🚀 Quick Start
 
@@ -70,12 +70,23 @@ Run the database initialization script to create the `tendly` schema and tables:
 python init_db.py
 ```
 
-This will:
-- Create the `tendly` schema in your PostgreSQL database
-- Create tables: `tenders`, `lots`, `documents`, `scraping_log`
-- All tables include a `country_code` column for multi-country support
+### 6. Run Initial Scrape
 
-### 6. Run the Application
+Fetch your first batch of tender data:
+
+```bash
+python tasks/scrape_tenders.py --limit 100 --days-back 30
+```
+
+### 7. Setup Automated Scraping (Optional)
+
+Configure hourly scraping with cron:
+
+```bash
+bash tasks/setup_cron.sh
+```
+
+### 8. Run the Streamlit Application
 
 ```bash
 streamlit run Home.py
@@ -89,83 +100,116 @@ The application will be available at `http://localhost:8501`
 uk-tender-data/
 ├── Home.py                      # Main Streamlit application
 ├── pages/
-│   ├── 1_Scrape_Tenders.py     # Data scraping interface
-│   ├── 2_Search_Tenders.py     # Search and filter interface
-│   └── 3_Analytics_Export.py   # Analytics and export interface
+│   ├── Search_Tenders.py        # Search and filter interface
+│   └── Analytics_Export.py      # Analytics and export interface
+├── tasks/
+│   ├── scrape_tenders.py        # Command-line scraper (runs hourly)
+│   ├── setup_cron.sh            # Cron setup script
+│   └── README.md                # Tasks documentation
 ├── utils/
-│   ├── database.py             # PostgreSQL database operations
-│   ├── api_scraper.py          # API scraping functionality
-│   └── data_generator.py       # Synthetic data generation
+│   ├── database.py              # PostgreSQL database operations
+│   ├── api_scraper.py           # API scraping functionality
+│   └── data_generator.py        # Data generation utilities
 ├── sql/
-│   └── create_tables.sql       # PostgreSQL DDL (tendly schema)
+│   └── create_tables.sql        # PostgreSQL DDL (tendly schema)
+├── logs/
+│   ├── scrape_*.json            # JSON scraping logs
+│   ├── cron.log                 # Cron execution logs
+│   └── README.md                # Logs documentation
 ├── tests/
-│   ├── test_database.py        # Database tests
-│   ├── test_api_scraper.py     # API scraper tests
-│   └── test_data_generator.py  # Data generator tests
-├── init_db.py                  # Database initialization script
-├── requirements.txt            # Python dependencies
-├── .env.sample                 # Environment variables template
-└── README.md                   # This file
+│   ├── test_database.py         # Database tests
+│   ├── test_api_scraper.py      # API scraper tests
+│   └── test_data_generator.py   # Data generator tests
+├── init_db.py                   # Database initialization script
+├── requirements.txt             # Python dependencies
+├── .env.sample                  # Environment variables template
+└── README.md                    # This file
 ```
 
 ## 🗄️ Database Schema
 
-All tables are created in the `tendly` schema with the following structure:
+All tables are created in the `tendly` schema:
 
-### tenders
-- `id` (SERIAL PRIMARY KEY)
-- `country_code` (VARCHAR(2)) - Country identifier (e.g., 'UK')
-- `notice_id` (VARCHAR(100) UNIQUE)
-- `ocid` (VARCHAR(100))
-- `title` (TEXT)
-- `description` (TEXT)
-- `status` (VARCHAR(50))
-- `stage` (VARCHAR(50))
-- `publication_date` (TIMESTAMP)
-- `value_amount` (DECIMAL(15,2))
-- `value_currency` (VARCHAR(3))
-- `buyer_name` (VARCHAR(255))
-- `buyer_id` (VARCHAR(100))
-- `buyer_email` (VARCHAR(255))
-- `buyer_address` (TEXT)
-- `classification_id` (VARCHAR(50))
-- `classification_description` (TEXT)
-- `main_procurement_category` (VARCHAR(50))
-- `cpv_codes` (TEXT)
-- `legal_basis` (VARCHAR(100))
-- `created_at` (TIMESTAMP DEFAULT NOW())
+### tendly.tenders
+Main tender information with country_code, notice_id, title, description, status, value, buyer details, classification, and timestamps.
 
-### lots
-- `id` (SERIAL PRIMARY KEY)
-- `country_code` (VARCHAR(2))
-- `tender_id` (INTEGER REFERENCES tendly.tenders)
-- `lot_id` (VARCHAR(100))
-- `title` (TEXT)
-- `description` (TEXT)
-- `value_amount` (DECIMAL(15,2))
-- `value_currency` (VARCHAR(3))
+### tendly.lots
+Individual lots associated with tenders (one-to-many relationship).
 
-### documents
-- `id` (SERIAL PRIMARY KEY)
-- `country_code` (VARCHAR(2))
-- `tender_id` (INTEGER REFERENCES tendly.tenders)
-- `document_id` (VARCHAR(100))
-- `title` (VARCHAR(255))
-- `document_type` (VARCHAR(50))
-- `url` (TEXT)
-- `date_published` (TIMESTAMP)
+### tendly.documents
+Documents and attachments related to tenders.
 
-### scraping_log
-- `id` (SERIAL PRIMARY KEY)
-- `country_code` (VARCHAR(2))
-- `timestamp` (TIMESTAMP DEFAULT NOW())
-- `records_fetched` (INTEGER)
-- `records_inserted` (INTEGER)
-- `records_duplicates` (INTEGER)
-- `source` (VARCHAR(50))
-- `parameters` (TEXT)
-- `status` (VARCHAR(20))
-- `error_message` (TEXT)
+### tendly.scraping_log
+Audit trail of all scraping operations with country_code, timestamp, records fetched/inserted/duplicates, source, and status.
+
+See `sql/create_tables.sql` for complete schema.
+
+## 🤖 Automated Scraping
+
+### Command-Line Scraper
+
+The scraper runs as a command-line task and can be scheduled with cron:
+
+```bash
+# Basic usage
+python tasks/scrape_tenders.py
+
+# With options
+python tasks/scrape_tenders.py --limit 100 --days-back 7 --stage tender
+
+# Help
+python tasks/scrape_tenders.py --help
+```
+
+### Scheduling with Cron
+
+Setup hourly scraping:
+
+```bash
+bash tasks/setup_cron.sh
+```
+
+Or manually add to crontab:
+
+```bash
+# Run every hour at minute 0
+0 * * * * cd /path/to/uk-tender-data && /path/to/venv/bin/python tasks/scrape_tenders.py --limit 100 --days-back 1 >> logs/cron.log 2>&1
+```
+
+### Logging
+
+All scraping operations are logged:
+
+- **JSON Logs**: `logs/scrape_YYYYMMDD_HHMMSS.json` - Structured logs with metadata
+- **Cron Logs**: `logs/cron.log` - Console output from cron execution
+- **Database Logs**: `tendly.scraping_log` - Audit trail in PostgreSQL
+
+View latest scraping status:
+
+```bash
+ls -t logs/scrape_*.json | head -1 | xargs cat | jq .
+```
+
+## 📊 Streamlit Application
+
+The Streamlit application provides a web interface for viewing and analyzing tender data:
+
+### Home Page
+- Database statistics and metrics
+- Recent tenders table
+- Detailed tender viewer
+
+### Search Tenders
+- Keyword search across titles and descriptions
+- Filter by buyer name, status, and date range
+- Detailed tender information display
+
+### Analytics & Export
+- Visualize tender distribution by status, buyer, and value
+- Export filtered data to Excel, CSV, or JSON
+- Download comprehensive reports
+
+**Note**: The Streamlit app is for viewing data only. Data collection is handled by the command-line scraper in `tasks/`.
 
 ## 🧪 Testing
 
@@ -184,28 +228,6 @@ python tests/test_data_generator.py
 
 Test results are saved to `test-results/*.json`
 
-## 📊 Usage
-
-### Home Page
-- View database statistics and recent tenders
-- Generate synthetic test data
-- Monitor database health
-
-### Scrape Tenders
-- Configure scraping parameters (record count, stage, date range)
-- Scrape data from Find a Tender API
-- View scraping history and logs
-
-### Search Tenders
-- Search by keywords across titles and descriptions
-- Filter by buyer name, status, and date range
-- View detailed tender information
-
-### Analytics & Export
-- Visualize tender distribution by status, buyer, and value
-- Export filtered data to Excel, CSV, or JSON
-- Download comprehensive reports
-
 ## 🌍 Multi-Country Support
 
 The application is designed to support multiple countries:
@@ -218,6 +240,7 @@ To add a new country:
 1. Set `COUNTRY_CODE` in `.env` to the new country code
 2. Update the data generator with country-specific data
 3. Configure the API scraper for the new country's tender service
+4. Run the scraper with `--country CODE`
 
 ## 🔧 Configuration
 
@@ -229,25 +252,22 @@ To add a new country:
 
 ### Scraping Parameters
 
-- **Record Count**: 10-500 records per scraping session
-- **Procurement Stage**: planning, tender, award
-- **Date Range**: 7-365 days back from current date
+- **Record Count**: 1-100 records per scraping session (API limit)
+- **Procurement Stage**: planning, tender, award, or all
+- **Date Range**: 1-365 days back from current date
 
 ## 📦 Dependencies
 
-Core dependencies (see `requirements.txt` for full list):
+Core dependencies:
 
 - `streamlit` - Web application framework
 - `pandas` - Data manipulation and analysis
 - `psycopg2-binary` - PostgreSQL adapter
-- `sqlalchemy` - SQL toolkit and ORM
 - `requests` - HTTP library for API calls
-- `playwright` - Browser automation (fallback scraping)
-- `faker` - Synthetic data generation
-- `langchain` - LLM framework
-- `langchain-openai` - OpenAI integration for LangChain
-- `langgraph` - Graph-based LLM workflows
+- `python-dotenv` - Environment variable management
 - `openpyxl` - Excel file operations
+
+See `requirements.txt` for full list.
 
 ## 🚀 Deployment
 
@@ -256,41 +276,71 @@ Core dependencies (see `requirements.txt` for full list):
 1. Fork this repository
 2. Sign up at [share.streamlit.io](https://share.streamlit.io)
 3. Connect your GitHub repository
-4. Add secrets in Streamlit Cloud dashboard:
-   - `MAIN_DB_URL`
-   - `OPENAI_API_KEY`
-   - `COUNTRY_CODE`
+4. Add secrets in Streamlit Cloud dashboard
 5. Deploy!
 
-### Heroku
+**Note**: For automated scraping, you'll need a separate server with cron.
 
-```bash
-heroku create uk-tender-scraper
-heroku addons:create heroku-postgresql:mini
-heroku config:set OPENAI_API_KEY=your_key_here
-heroku config:set COUNTRY_CODE=UK
-git push heroku main
-heroku open
-```
+### Server Deployment
 
-### Docker
+For full functionality including automated scraping:
 
-```bash
-docker build -t uk-tender-scraper .
-docker run -p 8501:8501 \
-  -e MAIN_DB_URL=your_db_url \
-  -e OPENAI_API_KEY=your_key \
-  -e COUNTRY_CODE=UK \
-  uk-tender-scraper
-```
+1. Deploy to a Linux server (Ubuntu, Debian, etc.)
+2. Install Python 3.11+ and PostgreSQL
+3. Clone repository and setup virtual environment
+4. Configure environment variables
+5. Initialize database
+6. Setup cron for hourly scraping
+7. Run Streamlit app with systemd or supervisor
+
+See `DEPLOYMENT.md` for detailed deployment instructions.
 
 ## 📝 API Documentation
 
 The application uses the Find a Tender API:
-- Base URL: `https://www.find-tender.service.gov.uk/api/1.0/`
-- Endpoint: `/ocdsReleasePackages`
-- Format: OCDS (Open Contracting Data Standard)
-- Authentication: Not required for public data
+
+- **Base URL**: `https://www.find-tender.service.gov.uk/api/1.0/`
+- **Endpoint**: `/ocdsReleasePackages`
+- **Format**: OCDS (Open Contracting Data Standard)
+- **Authentication**: Not required for public data
+- **Rate Limit**: 100 records per request
+
+## 🔍 Monitoring
+
+### Check Scraping Status
+
+```bash
+# View latest log
+ls -t logs/scrape_*.json | head -1 | xargs cat | jq .
+
+# Check for errors
+grep -l '"status": "error"' logs/scrape_*.json
+
+# Daily summary
+jq -s 'map(.records_inserted) | add' logs/scrape_$(date +%Y%m%d)*.json
+```
+
+### Database Queries
+
+```sql
+-- Recent scraping runs
+SELECT * FROM tendly.scraping_log 
+WHERE country_code = 'UK' 
+ORDER BY timestamp DESC 
+LIMIT 10;
+
+-- Total records inserted today
+SELECT SUM(records_inserted) FROM tendly.scraping_log 
+WHERE country_code = 'UK' 
+  AND DATE(timestamp) = CURRENT_DATE;
+
+-- Latest tenders
+SELECT notice_id, title, buyer_name, value_amount 
+FROM tendly.tenders 
+WHERE country_code = 'UK' 
+ORDER BY created_at DESC 
+LIMIT 10;
+```
 
 ## 🤝 Contributing
 
@@ -311,7 +361,7 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 - Data source: [Find a Tender Service](https://www.find-tender.service.gov.uk/)
 - Built with [Streamlit](https://streamlit.io/)
 - Uses [OCDS](https://standard.open-contracting.org/) data standard
-- Powered by [LangChain](https://langchain.com/) and [OpenAI](https://openai.com/)
+- Powered by [PostgreSQL](https://www.postgresql.org/)
 
 ## 📧 Contact
 
@@ -319,4 +369,4 @@ For questions or support, please open an issue on GitHub.
 
 ---
 
-**Lohusalu Capital Management** | UK Tender Scraper | Data from Find a Tender Service
+**Lohusalu Capital Management** | UK Public Tender Data | Data from Find a Tender Service

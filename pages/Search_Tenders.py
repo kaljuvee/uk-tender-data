@@ -4,11 +4,10 @@ Search Tenders Page - Search and filter tender data
 
 import streamlit as st
 from utils.database import TenderDatabase
-from utils.data_generator import TenderDataGenerator
 import pandas as pd
 
 st.set_page_config(
-    page_title="Search Tenders",
+    page_title="Search Tenders - UK Public Tender Data",
     page_icon="🔎",
     layout="wide"
 )
@@ -22,7 +21,7 @@ db = get_database()
 
 # Header
 st.title("🔎 Search & Filter Tenders")
-st.markdown("Search through tender database with advanced filters")
+st.markdown("Search through UK public tender database with advanced filters")
 st.markdown("---")
 
 # Sidebar filters

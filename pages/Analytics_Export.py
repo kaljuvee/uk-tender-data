@@ -4,13 +4,12 @@ Analytics & Export Page - Analyze and export tender data
 
 import streamlit as st
 from utils.database import TenderDatabase
-from utils.data_generator import TenderDataGenerator
 import pandas as pd
 import json
 from datetime import datetime
 
 st.set_page_config(
-    page_title="Analytics & Export",
+    page_title="Analytics & Export - UK Public Tender Data",
     page_icon="📊",
     layout="wide"
 )
@@ -24,42 +23,11 @@ db = get_database()
 
 # Header
 st.title("📊 Analytics & Export")
-st.markdown("Analyze tender data and export results")
+st.markdown("Analyze UK public tender data and export results")
 st.markdown("---")
 
-# Sidebar
-st.sidebar.header("⚙️ Options")
-
-# Generate synthetic data button
-if st.sidebar.button("🎲 Generate Synthetic Data", use_container_width=True):
-    with st.spinner("Generating synthetic tender data..."):
-        generator = TenderDataGenerator()
-        synthetic_tenders = generator.generate_tenders(count=50)
-        
-        inserted = 0
-        duplicates = 0
-        
-        for tender in synthetic_tenders:
-            result = db.insert_tender(tender)
-            if result:
-                inserted += 1
-            else:
-                duplicates += 1
-        
-        db.log_scraping_run(
-            records_fetched=len(synthetic_tenders),
-            records_inserted=inserted,
-            records_duplicates=duplicates,
-            source="synthetic_generator"
-        )
-        
-        st.sidebar.success(f"✅ Generated {inserted} tenders")
-        st.rerun()
-
-st.sidebar.markdown("---")
-
-# Export options
-st.sidebar.subheader("📥 Export Options")
+# Sidebar - Export options
+st.sidebar.header("📥 Export Options")
 export_format = st.sidebar.selectbox(
     "Export Format",
     options=["CSV", "JSON", "Excel"],
